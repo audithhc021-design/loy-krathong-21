@@ -1,0 +1,381 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body {
+    background-color: #060e22;
+    color: #f8fafc;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+
+@keyframes candleFlicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scaleY(1.12) scaleX(0.92);
+    opacity: 1;
+  }
+}
+
+@keyframes driftRight {
+  0% {
+    transform: translateX(-120px);
+  }
+  100% {
+    transform: translateX(470px);
+  }
+}
+
+@keyframes driftLeft {
+  0% {
+    transform: translateX(470px);
+  }
+  100% {
+    transform: translateX(-120px);
+  }
+}
+
+/* อิโมจิปลา/กุ้งหันหน้าไปทางซ้ายโดยธรรมชาติ -> วิ่งขวาต้อง scaleX(-1), วิ่งซ้ายไม่กลับด้าน */
+@keyframes fishSwimRight {
+  0% {
+    transform: translateX(-45px) translateY(0px) scaleX(-1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateX(210px) translateY(-5px) scaleX(-1);
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(470px) translateY(2px) scaleX(-1);
+    opacity: 0;
+  }
+}
+
+@keyframes fishSwimLeft {
+  0% {
+    transform: translateX(470px) translateY(0px) scaleX(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(210px) translateY(5px) scaleX(1);
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-45px) translateY(-2px) scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes jellyfishFloat {
+  0% {
+    transform: translateX(-30px) translateY(8px) rotate(-6deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.78;
+  }
+  50% {
+    transform: translateX(210px) translateY(-10px) rotate(6deg);
+    opacity: 0.82;
+  }
+  85% {
+    opacity: 0.78;
+  }
+  100% {
+    transform: translateX(460px) translateY(6px) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes crabScuttle {
+  0% {
+    transform: translateX(450px) translateY(0px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  25% {
+    transform: translateX(330px) translateY(-2px);
+  }
+  50% {
+    transform: translateX(210px) translateY(1px);
+  }
+  75% {
+    transform: translateX(95px) translateY(-2px);
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(-40px) translateY(0px);
+    opacity: 0;
+  }
+}
+
+@keyframes boatGlide {
+  0% {
+    transform: translateX(-90px);
+  }
+  100% {
+    transform: translateX(470px);
+  }
+}
+
+@keyframes fireworkBurst {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  65% {
+    transform: scale(1.25);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes petalFall {
+  0% {
+    transform: translateY(-6px) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(28px) translateX(8px) rotate(140deg);
+    opacity: 0;
+  }
+}
+
+.animate-float-bob {
+  animation: floatBob 3.6s ease-in-out infinite;
+}
+
+.animate-candle-flicker {
+  transform-origin: center bottom;
+  animation: candleFlicker 1.4s ease-in-out infinite;
+}
+
+.animate-drift-right {
+  animation: driftRight linear infinite;
+}
+
+.animate-drift-left {
+  animation: driftLeft linear infinite;
+}
+
+.animate-fish-right {
+  animation: fishSwimRight linear infinite;
+}
+
+.animate-fish-left {
+  animation: fishSwimLeft linear infinite;
+}
+
+.animate-jellyfish {
+  animation: jellyfishFloat linear infinite;
+}
+
+.animate-crab {
+  animation: crabScuttle linear infinite;
+}
+
+.animate-boat-glide {
+  animation: boatGlide 38s linear infinite;
+}
+
+.animate-firework {
+  animation: fireworkBurst 4.5s ease-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+.animate-petal-fall {
+  animation: petalFall 2.8s ease-in-out infinite;
+}
+
+.river-paused * {
+  animation-play-state: paused !important;
+}
+
+/* =========================================================
+   โหมดสว่างโทนขาวครีม (เมื่อผู้ใช้กดปุ่มสลับดวงไฟ)
+   ========================================================= */
+.theme-cream {
+  background-color: #faf5e8 !important;
+  color: #2c2219 !important;
+}
+
+.theme-cream header,
+.theme-cream nav {
+  background-color: rgba(255, 251, 240, 0.94) !important;
+  border-color: #e6d7b9 !important;
+  color: #2c2219 !important;
+}
+
+.theme-cream .cream-card {
+  background-color: #fffdf7 !important;
+  border-color: #e6d7b9 !important;
+  color: #2c2219 !important;
+}
+
+.theme-cream .bg-slate-900\/75,
+.theme-cream .bg-slate-900\/80,
+.theme-cream .bg-slate-900\/85,
+.theme-cream .bg-slate-900\/90,
+.theme-cream .bg-slate-900\/70,
+.theme-cream .bg-slate-900\/60,
+.theme-cream .bg-slate-950\/60,
+.theme-cream .bg-slate-950\/70,
+.theme-cream .bg-slate-950\/90,
+.theme-cream .bg-\[\#0c1a38\],
+.theme-cream .bg-\[\#0d1f45\],
+.theme-cream .bg-slate-900,
+.theme-cream .bg-slate-950 {
+  background-color: #fffdf8 !important;
+}
+
+.theme-cream .bg-gradient-to-br.from-\[\#0e2047\].to-\[\#08142e\],
+.theme-cream .bg-gradient-to-b.from-\[\#0c1d44\].to-\[\#081229\],
+.theme-cream .bg-gradient-to-b.from-\[\#0d1f45\].to-\[\#081228\] {
+  background-image: linear-gradient(to bottom right, #fffaf0, #f5ebd4) !important;
+}
+
+.theme-cream .border-slate-800,
+.theme-cream .border-slate-700,
+.theme-cream .border-white\/10 {
+  border-color: #e5d5b5 !important;
+}
+
+.theme-cream .text-white {
+  color: #2c2219 !important;
+}
+
+.theme-cream .text-slate-100,
+.theme-cream .text-slate-200 {
+  color: #3d3024 !important;
+}
+
+.theme-cream .text-slate-300 {
+  color: #5c4b3a !important;
+}
+
+.theme-cream .text-slate-400,
+.theme-cream .text-slate-500 {
+  color: #7c6954 !important;
+}
+
+.theme-cream .text-amber-200,
+.theme-cream .text-amber-300 {
+  color: #b45309 !important;
+}
+
+.theme-cream .text-emerald-200,
+.theme-cream .text-emerald-300,
+.theme-cream .text-emerald-100 {
+  color: #047857 !important;
+}
+
+.theme-cream .text-sky-300,
+.theme-cream .text-sky-200 {
+  color: #0369a1 !important;
+}
+
+.theme-cream .text-pink-100,
+.theme-cream .text-pink-200,
+.theme-cream .text-pink-300 {
+  color: #be185d !important;
+}
+
+.theme-cream .text-rose-200,
+.theme-cream .text-rose-300 {
+  color: #be123c !important;
+}
+
+/* คงข้อความบนป้ายสีเข้มและฉากแม่น้ำกลางคืนให้อ่านชัดเสมอในโหมดขาวครีม */
+.theme-cream .river-scene .text-white,
+.theme-cream .river-scene .text-slate-100,
+.theme-cream .river-scene .text-slate-200 {
+  color: #f8fafc !important;
+}
+
+.theme-cream .river-scene .text-amber-200,
+.theme-cream .river-scene .text-amber-200\/95,
+.theme-cream .river-scene .text-amber-300 {
+  color: #fde68a !important;
+}
+
+.theme-cream .river-scene .text-sky-200,
+.theme-cream .river-scene .text-sky-200\/80,
+.theme-cream .river-scene .text-sky-100 {
+  color: #e0f2fe !important;
+}
+
+.theme-cream .river-scene .bg-slate-950\/70,
+.theme-cream .river-scene .bg-slate-900\/85 {
+  background-color: rgba(15, 23, 42, 0.78) !important;
+  color: #f8fafc !important;
+}
+
+.theme-cream .bg-amber-400.text-slate-950,
+.theme-cream .bg-emerald-400.text-slate-950,
+.theme-cream .bg-pink-400.text-slate-950,
+.theme-cream .bg-gradient-to-r.text-slate-950 {
+  color: #1c1917 !important;
+}
+
+.theme-cream input,
+.theme-cream textarea,
+.theme-cream select {
+  background-color: #ffffff !important;
+  color: #2c2219 !important;
+  border-color: #decba8 !important;
+}
