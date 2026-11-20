@@ -104,8 +104,25 @@ export async function GET() {
     });
   } catch (err) {
     console.error("GET /api/state error:", err);
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message: unknown }).message)
+        : "Unknown server error";
     return NextResponse.json(
-      { error: "ไม่สามารถโหลดข้อมูลระบบได้" },
+      {
+        error: "ไม่สามารถโหลดข้อมูลระบบได้",
+        detail: message,
+        hint: {
+          storageMode: getStorageMode(),
+          hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()),
+          hasSupabaseServiceKey: Boolean(
+            process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+          ),
+          hasLiffId: Boolean(process.env.NEXT_PUBLIC_LIFF_ID?.trim()),
+        },
+      },
       { status: 500 }
     );
   }

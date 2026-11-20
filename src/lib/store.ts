@@ -19,7 +19,10 @@ interface LocalDbSchema {
   next_serial_no: number;
 }
 
-const LOCAL_DB_PATH = path.join(process.cwd(), ".data", "local-db.json");
+const LOCAL_DB_PATH =
+  process.env.VERCEL === "1"
+    ? path.join("/tmp", "loy-krathong-69", "local-db.json")
+    : path.join(process.cwd(), ".data", "local-db.json");
 
 export function getStorageMode(): "supabase" | "local-dev" {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();

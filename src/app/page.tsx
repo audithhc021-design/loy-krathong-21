@@ -66,6 +66,7 @@ interface AppStateResponse {
 
 export default function HomePage() {
   const [state, setState] = useState<AppStateResponse | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     "river" | "missions" | "leaderboard" | "admin"
   >("river");
@@ -91,13 +92,25 @@ export default function HomePage() {
   }, []);
 
   const fetchState = useCallback(async () => {
-    const res = await fetch("/api/state", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = (await res.json()) as AppStateResponse;
-    setState(data);
-    // If LIFF is configured and user is not logged in yet, auto-start LIFF onboarding
-    if (data.liffConfigured && !data.me) {
-      setShowAuthModal(true);
+    try {
+      setLoadError(null);
+      const res = await fetch("/api/state", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        const detail = data?.detail ? ` (${data.detail})` : "";
+        setLoadError(`${data?.error || "โหลดข้อมูลไม่สำเร็จ"}${detail}`);
+        return;
+      }
+      const typed = data as AppStateResponse;
+      setState(typed);
+      // If LIFF is configured and user is not logged in yet, auto-start LIFF onboarding
+      if (typed.liffConfigured && !typed.me) {
+        setShowAuthModal(true);
+      }
+    } catch (err) {
+      setLoadError(
+        err instanceof Error ? err.message : "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"
+      );
     }
   }, []);
 
@@ -137,9 +150,29 @@ export default function HomePage() {
 
   if (!state) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-3 text-slate-300">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-        <p className="text-xs">กำลังเตรียมสายน้ำวันลอยกระทง...</p>
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center text-slate-300">
+        {loadError ? (
+          <div className="max-w-sm w-full rounded-3xl border border-rose-400/30 bg-slate-900/90 p-5 space-y-3">
+            <p className="text-sm font-bold text-rose-300">
+              เกิดข้อผิดพลาดในการโหลดระบบ
+            </p>
+            <p className="text-xs text-slate-200 break-words leading-relaxed">
+              {loadError}
+            </p>
+            <button
+              type="button"
+              onClick={() => fetchState()}
+              className="w-full rounded-2xl bg-amber-400 py-2.5 text-xs font-bold text-slate-950"
+            >
+              ลองโหลดใหม่อีกครั้ง
+            </button>
+          </div>
+        ) : (
+          <>
+            <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+            <p className="text-xs">กำลังเตรียมสายน้ำวันลอยกระทง...</p>
+          </>
+        )}
       </main>
     );
   }

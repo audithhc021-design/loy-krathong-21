@@ -74,3 +74,7 @@ where not exists (select 1 from public.lucky_draw_prizes);
 create index if not exists idx_votes_krathong on public.votes(krathong_id);
 create index if not exists idx_votes_voter on public.votes(voter_user_id);
 create index if not exists idx_krathongs_created on public.krathongs(created_at);
+
+grant usage on schema public to service_role;
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
