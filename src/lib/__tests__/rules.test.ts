@@ -169,6 +169,16 @@ describe("activity status & krathong parts validation", () => {
 
     expect(
       isValidKrathongParts({
+        base_id: "royal-barge",
+        flower_id: "sakura-pink",
+        candle_id: "floating-yi-peng",
+        decor_id: "cute-turtle",
+        aura_id: "moonlight-halo",
+      })
+    ).toBe(true);
+
+    expect(
+      isValidKrathongParts({
         base_id: "golden-swan",
         flower_id: "sunflower",
         candle_id: "twin-lotus-candle",

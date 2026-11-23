@@ -66,6 +66,36 @@ export const KRATHONG_BASES: KrathongPartOption[] = [
     description: "คริสตัลน้ำแข็งละลายเป็นน้ำ สวยเย็นตา",
     badge: "รักษ์โลก",
   },
+  {
+    id: "blooming-lotus",
+    name: "กลีบบัวบานใหญ่",
+    description: "กลีบบัวซ้อนสองชั้นบานสะพรั่งอ่อนช้อย",
+    badge: "ใหม่",
+  },
+  {
+    id: "heart-krathong",
+    name: "กระทงหัวใจพาสเทล",
+    description: "ทรงหัวใจสีชมพูอบอุ่น ส่งต่อความรักดีๆ",
+    badge: "ใหม่",
+  },
+  {
+    id: "star-eight",
+    name: "กระทงดาวแปดแฉก",
+    description: "ทรงดาวแฉกแบบไทยโบราณ สวยสะดุดตา",
+    badge: "ใหม่",
+  },
+  {
+    id: "royal-barge",
+    name: "เรือสุพรรณหงส์จิ๋ว",
+    description: "หัวเรือหงส์ทองสง่างาม พร้อมพู่ห้อย",
+    badge: "ใหม่",
+  },
+  {
+    id: "bamboo-raft",
+    name: "แพไม้ไผ่รักษ์โลก",
+    description: "แพไผ่มัดเรียงแบบพื้นบ้าน ย่อยสลายได้ 100%",
+    badge: "Eco",
+  },
 ];
 
 export const KRATHONG_FLOWERS: KrathongPartOption[] = [
@@ -93,18 +123,33 @@ export const KRATHONG_FLOWERS: KrathongPartOption[] = [
     id: "red-rose",
     name: "กุหลาบแดง",
     description: "สีแดงสดใส เติมพลังความรักและความมุ่งมั่น",
-    badge: "ใหม่",
   },
   {
     id: "sunflower",
     name: "ทานตะวันสดใส",
-    description: "เบิกบานรับพลังบวก สู้ทุกโปรเจกต์",
-    badge: "ใหม่",
+    description: "เบิกบานรับพลังบวก สู้ทุกเป้าหมาย",
   },
   {
     id: "hibiscus",
     name: "ชบาสีส้ม",
     description: "สีส้มอบอุ่น โดดเด่นสะดุดตาในสายน้ำ",
+  },
+  {
+    id: "sakura-pink",
+    name: "ซากุระพาสเทล",
+    description: "ดอกไม้สีชมพูอ่อน ละมุนตาน่ารัก",
+    badge: "ใหม่",
+  },
+  {
+    id: "blue-butterfly-pea",
+    name: "อัญชันสีคราม",
+    description: "ดอกอัญชันสีน้ำเงินม่วง สวยแบบไทยแท้",
+    badge: "ใหม่",
+  },
+  {
+    id: "white-champaka",
+    name: "จำปี-จำปามงคล",
+    description: "สีงาช้าง-ทอง กลิ่นหอมแห่งสิริมงคล",
     badge: "ใหม่",
   },
 ];
@@ -133,13 +178,29 @@ export const KRATHONG_CANDLES: KrathongPartOption[] = [
   {
     id: "twin-lotus-candle",
     name: "เทียนคู่ดอกบัว",
-    description: "เทียนคู่เคียงกัน เสริมพลังทีมเวิร์ก",
-    badge: "ใหม่",
+    description: "เทียนคู่เคียงกัน เสริมพลังความสามัคคี",
   },
   {
     id: "sky-flame",
     name: "ประทีปฟ้าคราม",
     description: "เปลวแสงสีฟ้าเทอร์ควอยซ์ สวยล้ำไม่เหมือนใคร",
+  },
+  {
+    id: "lotus-bud-candle",
+    name: "เทียนดอกบัวตูม",
+    description: "เทียนรูปดอกบัวชมพู สวยประณีต",
+    badge: "ใหม่",
+  },
+  {
+    id: "floating-yi-peng",
+    name: "โคมยี่เป็งจิ๋ว",
+    description: "โคมลอยสีส้มทอง ส่องแสงอบอุ่นสไตล์ล้านนา",
+    badge: "ใหม่",
+  },
+  {
+    id: "rainbow-crystal",
+    name: "แท่งคริสตัลเรืองแสง",
+    description: "ประทีปคริสตัลสีพาสเทล สไตล์แฟนตาซี",
     badge: "ใหม่",
   },
 ];
@@ -161,32 +222,71 @@ export const KRATHONG_DECORS: KrathongPartOption[] = [
     description: "ผีเสื้อตัวน้อยเคียงข้างธรรมชาติ",
   },
   {
-    id: "tag-work-pang",
-    name: "ป้าย \"งานปัง\"",
-    description: "ขอให้โปรเจกต์ราบรื่น สำเร็จทุกเป้าหมาย",
-  },
-  {
-    id: "tag-bonus",
-    name: "ป้าย \"โบนัสพุ่ง\"",
-    description: "สายมูประจำออฟฟิศ พลังบวกเต็มร้อย",
-  },
-  {
-    id: "tag-rich",
-    name: "ป้าย \"รวยๆ เฮงๆ\"",
-    description: "ป้ายทองคำมงคล ขอให้เฮงตลอดปี",
-    badge: "ใหม่",
-  },
-  {
     id: "origami-crane",
     name: "นกกระดาษมงคล",
     description: "นกกระดาษพับอธิษฐาน ส่งความหวังสู่ฟากฟ้า",
-    badge: "ใหม่",
   },
   {
     id: "mini-lanterns",
     name: "โคมจิ๋วคู่",
     description: "โคมไฟประดับสองข้าง เพิ่มบรรยากาศเทศกาล",
+  },
+  {
+    id: "cute-turtle",
+    name: "น้องเต่านำโชค",
+    description: "เต่าน้อยสีเขียว สัญลักษณ์อายุยืนและความมั่นคง",
     badge: "ใหม่",
+  },
+  {
+    id: "koi-fish",
+    name: "ปลาคาร์ปมงคล",
+    description: "ปลาคาร์ปสีส้ม-ขาว แหวกว่ายนำโชคลาภ",
+    badge: "ใหม่",
+  },
+  {
+    id: "paper-umbrella",
+    name: "ร่มกระดาษสา",
+    description: "ร่มล้านนาสีแดง-ทอง กางประดับสุดคลาสสิก",
+    badge: "ใหม่",
+  },
+  {
+    id: "thai-elephant",
+    name: "ช้างไทยจิ๋ว",
+    description: "น้องช้างมงคลคู่ขวัญคนไทย พลังใจเต็มเปี่ยม",
+    badge: "ใหม่",
+  },
+  {
+    id: "tag-wish-true",
+    name: "ป้าย \"สมหวัง\"",
+    description: "ขอให้สิ่งที่ตั้งใจไว้สมหวังทุกประการ",
+    badge: "ใหม่",
+  },
+  {
+    id: "tag-healthy",
+    name: "ป้าย \"สุขภาพดี\"",
+    description: "อวยพรให้แข็งแรง ปราศจากโรคภัย",
+    badge: "ใหม่",
+  },
+  {
+    id: "tag-eco",
+    name: "ป้าย \"รักษ์โลก\"",
+    description: "รวมพลังลดขยะ รักษาแม่น้ำใสสะอาด",
+    badge: "Eco",
+  },
+  {
+    id: "tag-rich",
+    name: "ป้าย \"รวยๆ เฮงๆ\"",
+    description: "ป้ายทองคำมงคล ขอให้เฮงตลอดปี",
+  },
+  {
+    id: "tag-work-pang",
+    name: "ป้าย \"งานปัง\"",
+    description: "ขอให้การงานราบรื่น สำเร็จทุกเป้าหมาย",
+  },
+  {
+    id: "tag-bonus",
+    name: "ป้าย \"โบนัสพุ่ง\"",
+    description: "สายมูประจำออฟฟิศ พลังบวกเต็มร้อย",
   },
 ];
 
@@ -221,6 +321,17 @@ export const KRATHONG_AURAS: KrathongPartOption[] = [
     id: "rainbow-mist",
     name: "ออร่าสีรุ้งพาสเทล",
     description: "แสงละมุนสีรุ้งสดใส สไตล์สายแฟนตาซี",
+  },
+  {
+    id: "moonlight-halo",
+    name: "แสงจันทร์สีเงิน",
+    description: "วงแสงนวลสีฟ้าเงินสว่างละมุนรอบกระทง",
+    badge: "ใหม่",
+  },
+  {
+    id: "lantern-sparks",
+    name: "ละอองไฟประทีป",
+    description: "ประกายไฟสีส้มทองลอยอุ่นๆ รอบตัวกระทง",
     badge: "ใหม่",
   },
 ];

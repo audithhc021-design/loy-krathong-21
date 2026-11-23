@@ -47,14 +47,14 @@ export function RiverView({
   const [shuffleSeed, setShuffleSeed] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
 
-  // รีเฟรชสุ่มกระทงบนแม่น้ำทุกๆ 15 วินาที (หยุดนับเวลาเมื่อกดหยุดไหล หรือกำลังเปิดอ่านการ์ดกระทง)
+  // รีเฟรชสุ่มกระทงบนแม่น้ำทุกๆ 20 วินาที (หยุดนับเวลาเมื่อกดหยุดไหล หรือกำลังเปิดอ่านการ์ดกระทง)
   useEffect(() => {
     if (isPaused || selectedId !== null) {
       return;
     }
     const timer = window.setInterval(() => {
       setShuffleSeed((s) => s + 1);
-    }, 15000);
+    }, 20000);
     return () => clearInterval(timer);
   }, [isPaused, selectedId]);
 
@@ -175,7 +175,7 @@ export function RiverView({
               <p className="text-[11px] text-sky-200/80">
                 {isPaused
                   ? "หยุดไหลชั่วคราว — แตะอ่านได้สบาย"
-                  : "สุ่มไหลใหม่อัตโนมัติทุก 15 วิ • แตะกระทงเพื่อดูชื่อและโหวต"}
+                  : "สุ่มไหลใหม่อัตโนมัติทุก 20 วิ • แตะกระทงเพื่อดูชื่อและโหวต"}
               </p>
             </div>
 
