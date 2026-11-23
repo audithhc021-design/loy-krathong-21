@@ -11,6 +11,7 @@ export const EVENT_SCHEDULE = {
 } as const;
 
 export const MAX_VOTES_PER_USER = 3;
+export const QUIZ_BONUS_VOTES = 2;
 export const MAX_JUDGE_PICKS = 2;
 export const MAX_WISH_LENGTH = 180;
 

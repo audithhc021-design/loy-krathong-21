@@ -297,6 +297,7 @@ export default function HomePage() {
             onRequireLogin={() => setShowAuthModal(true)}
             onVoteAction={handleVoteAction}
             onGoToBuilder={() => setActiveTab("builder")}
+            onGoToQuiz={() => setActiveTab("quiz")}
           />
         )}
 
@@ -320,6 +321,7 @@ export default function HomePage() {
             activityStatus={state.me?.activityStatus ?? null}
             onRequireLogin={() => setShowAuthModal(true)}
             onRefreshState={fetchState}
+            onGoToRiver={() => setActiveTab("river")}
           />
         )}
 

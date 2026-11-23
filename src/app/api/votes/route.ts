@@ -22,7 +22,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "คำขอไม่ถูกต้อง" }, { status: 400 });
     }
 
-    const [krathongs, votes, phaseOverride] = await Promise.all([
+    const [voter, krathongs, votes, phaseOverride] = await Promise.all([
+      db.getUserById(userId),
       db.getAllKrathongs(),
       db.getAllVotes(),
       db.getPhaseOverride(),
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
     const check = validateVoteAction({
       action: body.action,
       voterId: userId,
+      voterQuizPassed: Boolean(voter?.quiz_passed),
       targetKrathong,
       existingVotes: votes,
       phase,

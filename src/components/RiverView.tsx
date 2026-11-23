@@ -27,6 +27,7 @@ interface RiverViewProps {
   onRequireLogin: () => void;
   onVoteAction: (krathongId: string, action: "cast" | "unvote") => Promise<void>;
   onGoToBuilder: () => void;
+  onGoToQuiz: () => void;
 }
 
 const LANE_COUNT = 3;
@@ -39,6 +40,7 @@ export function RiverView({
   onRequireLogin,
   onVoteAction,
   onGoToBuilder,
+  onGoToQuiz,
 }: RiverViewProps) {
   const [filterMode, setFilterMode] = useState<"all" | "voted" | "mine">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -96,9 +98,12 @@ export function RiverView({
     return grouped;
   }, [riverKrathongs]);
 
+  const maxVotes = activityStatus?.votes_required ?? MAX_VOTES_PER_USER;
   const votesRemaining = activityStatus
-    ? Math.max(0, MAX_VOTES_PER_USER - activityStatus.votes_cast)
+    ? Math.max(0, maxVotes - activityStatus.votes_cast)
     : MAX_VOTES_PER_USER;
+  const canUnlockQuizBonus =
+    isLoggedIn && Boolean(activityStatus && !activityStatus.quiz_passed);
 
   async function handleVoteClick(k: PublicKrathongView) {
     if (!isLoggedIn) {
@@ -126,9 +131,22 @@ export function RiverView({
           </span>
         </div>
         <span className="rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200 shrink-0">
-          เหลือ {votesRemaining}/{MAX_VOTES_PER_USER} โหวต
+          เหลือ {votesRemaining}/{maxVotes} โหวต
         </span>
       </div>
+
+      {canUnlockQuizBonus && votesRemaining === 0 && (
+        <button
+          type="button"
+          onClick={onGoToQuiz}
+          className="w-full rounded-2xl border border-emerald-400/35 bg-emerald-500/15 px-3.5 py-2.5 text-left text-xs text-emerald-100 flex items-center justify-between gap-2 hover:bg-emerald-500/20 transition"
+        >
+          <span>
+            ✨ ใช้โหวตครบ 3 อันแล้ว! <strong>ทำควิซรักษ์โลก</strong> รับเพิ่มอีก +2 โหวต (รวม 5 โหวต)
+          </span>
+          <span className="shrink-0 font-bold text-amber-300">ไปเล่น →</span>
+        </button>
+      )}
 
       {/* Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
@@ -595,6 +613,17 @@ export function RiverView({
               <div className="rounded-2xl bg-slate-900/60 border border-slate-800 py-3 text-center text-xs text-slate-400">
                 ปิดรับการโหวตชั่วคราว
               </div>
+            ) : !selectedKrathong.voted_by_me && votesRemaining === 0 && canUnlockQuizBonus ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedId(null);
+                  onGoToQuiz();
+                }}
+                className="w-full rounded-2xl py-3.5 text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-lg"
+              >
+                ✨ โหวตครบ 3 อันแล้ว — กดทำควิซรักษ์โลกเพื่อรับ +2 โหวต!
+              </button>
             ) : (
               <button
                 disabled={busyId === selectedKrathong.id}

@@ -81,24 +81,36 @@ describe("validateVoteAction", () => {
     expect(res.ok).toBe(false);
   });
 
-  it("blocks more than 3 votes per user and allows changing votes anytime", () => {
+  it("blocks more than 3 votes before quiz and unlocks 5 votes after passing quiz", () => {
     const existingVotes: VoteRecord[] = [
       { id: "v1", voter_user_id: "u5", krathong_id: "k1", created_at: "" },
       { id: "v2", voter_user_id: "u5", krathong_id: "k2", created_at: "" },
       { id: "v3", voter_user_id: "u5", krathong_id: "k3", created_at: "" },
     ];
-    const castFourth = validateVoteAction({
+    const castFourthBeforeQuiz = validateVoteAction({
       action: "cast",
       voterId: "u5",
+      voterQuizPassed: false,
       targetKrathong: k4,
       existingVotes,
       phase: openPhase,
     });
-    expect(castFourth.ok).toBe(false);
+    expect(castFourthBeforeQuiz.ok).toBe(false);
+
+    const castFourthAfterQuiz = validateVoteAction({
+      action: "cast",
+      voterId: "u5",
+      voterQuizPassed: true,
+      targetKrathong: k4,
+      existingVotes,
+      phase: openPhase,
+    });
+    expect(castFourthAfterQuiz.ok).toBe(true);
 
     const unvoteFirst = validateVoteAction({
       action: "unvote",
       voterId: "u5",
+      voterQuizPassed: false,
       targetKrathong: k1,
       existingVotes,
       phase: openPhase,
@@ -142,18 +154,21 @@ describe("buildPublicKrathongs & rankKrathongs", () => {
 });
 
 describe("activity status & krathong parts validation", () => {
-  it("computes krathong, quiz, and vote quota status", () => {
-    const u = makeUser("u1", true);
+  it("computes krathong, quiz, and vote quota status (3 -> 5 after quiz)", () => {
+    const uNoQuiz = makeUser("u1", false);
+    const uQuiz = makeUser("u1", true);
     const k = makeKrathong("k1", "u1", 1, "2026-11-23T10:00:00+07:00");
     const votes: VoteRecord[] = [
       { id: "v1", voter_user_id: "u1", krathong_id: "k2", created_at: "" },
       { id: "v2", voter_user_id: "u1", krathong_id: "k3", created_at: "" },
     ];
-    const status = computeUserActivityStatus(u, [k], votes);
+    expect(computeUserActivityStatus(uNoQuiz, [k], votes).votes_required).toBe(3);
+
+    const status = computeUserActivityStatus(uQuiz, [k], votes);
     expect(status.has_krathong).toBe(true);
     expect(status.quiz_passed).toBe(true);
     expect(status.votes_cast).toBe(2);
-    expect(status.votes_required).toBe(3);
+    expect(status.votes_required).toBe(5);
   });
 
   it("validates expanded krathong parts and optional aura_id", () => {

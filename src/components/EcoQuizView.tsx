@@ -12,6 +12,7 @@ interface EcoQuizViewProps {
   activityStatus: VoteQuotaStatus | null;
   onRequireLogin: () => void;
   onRefreshState: () => Promise<void>;
+  onGoToRiver: () => void;
 }
 
 export function EcoQuizView({
@@ -20,6 +21,7 @@ export function EcoQuizView({
   activityStatus,
   onRequireLogin,
   onRefreshState,
+  onGoToRiver,
 }: EcoQuizViewProps) {
   const [quizStep, setQuizStep] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(
@@ -71,19 +73,29 @@ export function EcoQuizView({
         <HelpCircle className="w-4 h-4 text-emerald-300 shrink-0 mt-0.5" />
         <div>
           <p className="font-semibold">
-            แบบทดสอบความรู้ลอยกระทงรักษ์สิ่งแวดล้อม (เล่นหรือไม่เล่นก็ได้)
+            ทำควิซรักษ์โลกครบ 5 ข้อ รับโบนัสโหวตเพิ่ม +2 โหวต (รวม 5 โหวต)!
           </p>
           <p className="text-emerald-200/80 mt-0.5">
-            ชวนมาลองทายความรู้รักษ์โลกทีละข้อ รู้ผลพร้อมคำอธิบายทันทีครับ
+            เล่นหรือไม่เล่นก็ได้ (ปกติได้ 3 โหวต) — ตอบทีละข้อ รู้ผลพร้อมคำอธิบายทันทีครับ
           </p>
         </div>
       </div>
 
       {activityStatus?.quiz_passed && (
-        <div className="rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3.5 text-xs text-emerald-100 font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-          เก่งมาก! คุณตอบคำถามรักษ์โลกครบ {ECO_QUIZ_QUESTIONS.length}/
-          {ECO_QUIZ_QUESTIONS.length} ข้อแล้ว
+        <div className="rounded-2xl border border-emerald-400/40 bg-emerald-500/20 p-3.5 text-xs text-emerald-100 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+            <span>
+              ปลดล็อกโบนัสแล้ว! คุณมีสิทธิ์โหวตทั้งหมด 5 กระทง
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onGoToRiver}
+            className="rounded-xl bg-amber-400 px-2.5 py-1 text-[11px] font-bold text-slate-950 shrink-0"
+          >
+            ไปโหวต →
+          </button>
         </div>
       )}
 

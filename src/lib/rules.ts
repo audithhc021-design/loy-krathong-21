@@ -5,6 +5,7 @@ import {
   KRATHONG_DECORS,
   KRATHONG_FLOWERS,
   MAX_VOTES_PER_USER,
+  QUIZ_BONUS_VOTES,
 } from "./constants";
 import type {
   EventPhaseInfo,
@@ -53,6 +54,12 @@ export function isValidKrathongParts(parts: {
   );
 }
 
+export function getMaxVotesForUser(quizPassed: boolean): number {
+  return quizPassed
+    ? MAX_VOTES_PER_USER + QUIZ_BONUS_VOTES
+    : MAX_VOTES_PER_USER;
+}
+
 export function computeUserActivityStatus(
   user: UserRecord,
   krathongs: KrathongRecord[],
@@ -67,7 +74,7 @@ export function computeUserActivityStatus(
     has_krathong: hasKrathong,
     quiz_passed: user.quiz_passed,
     votes_cast: votesCast,
-    votes_required: MAX_VOTES_PER_USER,
+    votes_required: getMaxVotesForUser(user.quiz_passed),
   };
 }
 
@@ -152,11 +159,19 @@ export function buildPublicKrathongs(params: {
 export function validateVoteAction(params: {
   action: "cast" | "unvote";
   voterId: string;
+  voterQuizPassed?: boolean;
   targetKrathong: KrathongRecord | undefined;
   existingVotes: VoteRecord[];
   phase: EventPhaseInfo;
 }): { ok: true } | { ok: false; error: string; status: number } {
-  const { action, voterId, targetKrathong, existingVotes, phase } = params;
+  const {
+    action,
+    voterId,
+    voterQuizPassed = false,
+    targetKrathong,
+    existingVotes,
+    phase,
+  } = params;
 
   if (!phase.canVote) {
     return {
@@ -192,10 +207,13 @@ export function validateVoteAction(params: {
     return { ok: false, error: "คุณได้โหวตกระทงนี้ไปแล้ว", status: 400 };
   }
 
-  if (myVotes.length >= MAX_VOTES_PER_USER) {
+  const maxVotes = getMaxVotesForUser(voterQuizPassed);
+  if (myVotes.length >= maxVotes) {
     return {
       ok: false,
-      error: `ใช้สิทธิ์โหวตครบ ${MAX_VOTES_PER_USER} กระทงแล้ว (กดยกเลิกโหวตเดิมก่อนจึงจะโหวตกระทงใหม่ได้)`,
+      error: voterQuizPassed
+        ? `ใช้สิทธิ์โหวตครบ ${maxVotes} กระทงแล้ว (กดยกเลิกโหวตเดิมก่อนจึงจะโหวตกระทงใหม่ได้)`
+        : `ใช้สิทธิ์โหวตครบ ${maxVotes} กระทงแล้ว! ทำควิซรักษ์โลกเพื่อรับโบนัสเพิ่มอีก ${QUIZ_BONUS_VOTES} โหวต (รวม 5 โหวต)`,
       status: 400,
     };
   }
