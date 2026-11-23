@@ -2,10 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Check,
-  EyeOff,
   Heart,
-  Lock,
+  Leaf,
   Pause,
   Play,
   Shuffle,
@@ -13,13 +11,18 @@ import {
   X,
 } from "lucide-react";
 import { MAX_VOTES_PER_USER } from "@/lib/constants";
-import type { EventPhaseInfo, MissionStatus, PublicKrathongView } from "@/lib/types";
+import type {
+  EventPhaseInfo,
+  PublicKrathongView,
+  VoteQuotaStatus,
+} from "@/lib/types";
 import { KrathongArt } from "./KrathongArt";
+import { UserAvatar } from "./UserAvatar";
 
 interface RiverViewProps {
   krathongs: PublicKrathongView[];
   phase: EventPhaseInfo;
-  missionStatus: MissionStatus | null;
+  activityStatus: VoteQuotaStatus | null;
   isLoggedIn: boolean;
   onRequireLogin: () => void;
   onVoteAction: (krathongId: string, action: "cast" | "unvote") => Promise<void>;
@@ -31,7 +34,7 @@ const LANE_COUNT = 3;
 export function RiverView({
   krathongs,
   phase,
-  missionStatus,
+  activityStatus,
   isLoggedIn,
   onRequireLogin,
   onVoteAction,
@@ -67,7 +70,6 @@ export function RiverView({
       return true;
     });
 
-    // Seeded pseudo-random shuffle for the river view every 15s
     return [...list].sort((a, b) => {
       const ha = Math.sin(a.serial_no * 12.9898 + shuffleSeed * 78.233) * 43758.5453;
       const hb = Math.sin(b.serial_no * 12.9898 + shuffleSeed * 78.233) * 43758.5453;
@@ -94,8 +96,8 @@ export function RiverView({
     return grouped;
   }, [riverKrathongs]);
 
-  const votesRemaining = missionStatus
-    ? Math.max(0, MAX_VOTES_PER_USER - missionStatus.votes_cast)
+  const votesRemaining = activityStatus
+    ? Math.max(0, MAX_VOTES_PER_USER - activityStatus.votes_cast)
     : MAX_VOTES_PER_USER;
 
   async function handleVoteClick(k: PublicKrathongView) {
@@ -114,30 +116,18 @@ export function RiverView({
 
   return (
     <div className="space-y-3">
-      {/* Anonymous / Phase Info Banner */}
-      <div className="rounded-2xl border border-amber-400/20 bg-slate-900/70 px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
+      {/* Eco Impact & Vote Quota Banner */}
+      <div className="rounded-2xl border border-emerald-400/25 bg-slate-900/75 px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2 text-slate-200">
-          {phase.isRevealed ? (
-            <>
-              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>เปิดเผยชื่อเจ้าของกระทงแล้ว!</span>
-            </>
-          ) : (
-            <>
-              <EyeOff className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>
-                โหมดไม่เปิดเผยตัวตน — โหวตจากกระทงและคำอธิษฐาน (เหลือ{" "}
-                <strong className="text-amber-300">{votesRemaining}</strong> โหวต)
-              </span>
-            </>
-          )}
-        </div>
-        {!phase.canChangeVote && !phase.isClosed && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 px-2 py-0.5 text-[11px] font-medium text-orange-200 shrink-0">
-            <Lock className="w-3 h-3" />
-            หลัง 16:00 ล็อกโหวต
+          <Leaf className="w-4 h-4 text-emerald-300 shrink-0" />
+          <span>
+            ร่วมลดขยะในแม่น้ำแล้ว{" "}
+            <strong className="text-emerald-300">{krathongs.length}</strong> กระทง
           </span>
-        )}
+        </div>
+        <span className="rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200 shrink-0">
+          เหลือ {votesRemaining}/{MAX_VOTES_PER_USER} โหวต
+        </span>
       </div>
 
       {/* Filter Pills */}
@@ -185,7 +175,7 @@ export function RiverView({
               <p className="text-[11px] text-sky-200/80">
                 {isPaused
                   ? "หยุดไหลชั่วคราว — แตะอ่านได้สบาย"
-                  : "สุ่มไหลใหม่อัตโนมัติทุก 15 วิ • แตะกระทงเพื่อโหวต"}
+                  : "สุ่มไหลใหม่อัตโนมัติทุก 15 วิ • แตะกระทงเพื่อดูชื่อและโหวต"}
               </p>
             </div>
 
@@ -367,7 +357,7 @@ export function RiverView({
             </g>
           </svg>
 
-          {/* Distant Boat Silhouette gliding in front of the bank */}
+          {/* Distant Boat Silhouette */}
           <div className="pointer-events-none absolute bottom-0 left-0 animate-boat-glide opacity-85">
             <svg width="68" height="22" viewBox="0 0 74 24">
               <path
@@ -430,7 +420,7 @@ export function RiverView({
                   className="inline-flex items-center gap-1.5 rounded-2xl bg-amber-400 px-4 py-2 text-xs font-bold text-slate-950"
                 >
                   <Sparkles className="w-4 h-4" />
-                  สร้างกระทงแรกของคุณ
+                  ร่วมลอยกระทงรักษ์โลก
                 </button>
               )}
             </div>
@@ -442,7 +432,7 @@ export function RiverView({
                 return (
                   <div
                     key={laneIdx}
-                    className="relative h-36 w-full overflow-hidden"
+                    className="relative h-40 w-full overflow-hidden"
                   >
                     {laneItems.map((k, itemIdx) => {
                       const count = Math.max(1, laneItems.length);
@@ -483,9 +473,18 @@ export function RiverView({
                               </span>
                             )}
                           </div>
-                          <span className="mt-1 line-clamp-1 max-w-[110px] rounded-lg bg-slate-950/70 px-2 py-0.5 text-[10px] text-slate-100 border border-white/10">
-                            “{k.wish_text}”
-                          </span>
+
+                          {/* ใต้กระทง: รูปโปรไฟล์วงกลมจาก LINE (ไม่แสดงชื่อ) + คำอธิษฐานย่อ */}
+                          <div className="mt-1 flex items-center gap-1 max-w-[132px] rounded-full bg-slate-950/75 pl-1 pr-2 py-0.5 border border-white/10">
+                            <UserAvatar
+                              avatarUrl={k.author.avatar_url}
+                              displayName={k.author.display_name}
+                              size="xs"
+                            />
+                            <span className="truncate text-[10px] text-slate-100">
+                              “{k.wish_text}”
+                            </span>
+                          </div>
                         </button>
                       );
                     })}
@@ -495,7 +494,7 @@ export function RiverView({
             </div>
           )}
 
-          {/* Pagination across batches of river krathongs */}
+          {/* Pagination across batches */}
           {totalBatches > 1 && (
             <div className="mt-2 mb-1 flex items-center justify-center gap-2 relative z-20">
               <button
@@ -520,7 +519,7 @@ export function RiverView({
         </div>
       </div>
 
-      {/* Krathong Detail & Vote Modal */}
+      {/* Krathong Detail & Vote Modal (แสดงรูปโปรไฟล์ + ชื่อ LINE + คำอธิษฐานเมื่อกดดูกระทง) */}
       {selectedKrathong && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3"
@@ -530,32 +529,36 @@ export function RiverView({
             className="w-full max-w-md rounded-3xl border border-amber-400/30 bg-gradient-to-b from-[#0d1f45] to-[#081228] p-5 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
-                  {selectedKrathong.author
-                    ? selectedKrathong.author.full_name
-                    : selectedKrathong.anonymous_code}
-                </span>
-                {selectedKrathong.is_mine && (
-                  <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-200">
-                    กระทงของคุณ
-                  </span>
-                )}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <UserAvatar
+                  avatarUrl={selectedKrathong.author.avatar_url}
+                  displayName={selectedKrathong.author.display_name}
+                  size="md"
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-white truncate">
+                      {selectedKrathong.author.display_name}
+                    </p>
+                    {selectedKrathong.is_mine && (
+                      <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-200 shrink-0">
+                        ของคุณ
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-amber-300/85">
+                    กระทงรักษ์โลก #{String(selectedKrathong.serial_no).padStart(3, "0")}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedId(null)}
-                className="rounded-full bg-slate-800/80 p-1.5 text-slate-300 hover:text-white"
+                className="rounded-full bg-slate-800/80 p-1.5 text-slate-300 hover:text-white shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            {selectedKrathong.author && (
-              <p className="text-xs text-sky-300 -mt-2">
-                {selectedKrathong.author.department}
-              </p>
-            )}
 
             <div className="river-scene flex justify-center py-2 rounded-2xl bg-gradient-to-b from-[#0a2346] to-[#071f3b] border border-sky-400/20">
               <KrathongArt
@@ -586,16 +589,11 @@ export function RiverView({
 
             {selectedKrathong.is_mine ? (
               <div className="rounded-2xl bg-slate-900/60 border border-slate-800 py-3 text-center text-xs text-slate-400">
-                ไม่สามารถโหวตกระทงของตัวเองได้ครับ
+                นี่คือกระทงของคุณครับ (กดแก้ไขได้ที่แท็บ ลอยกระทง)
               </div>
             ) : !phase.canVote ? (
               <div className="rounded-2xl bg-slate-900/60 border border-slate-800 py-3 text-center text-xs text-slate-400">
-                ปิดรับการโหวตแล้ว
-              </div>
-            ) : selectedKrathong.voted_by_me && !phase.canChangeVote ? (
-              <div className="rounded-2xl bg-emerald-500/15 border border-emerald-400/30 py-3 text-center text-xs font-medium text-emerald-200 flex items-center justify-center gap-1.5">
-                <Check className="w-4 h-4" />
-                คุณโหวตกระทงนี้แล้ว (ล็อกโหวตหลัง 16:00 น.)
+                ปิดรับการโหวตชั่วคราว
               </div>
             ) : (
               <button
@@ -613,7 +611,7 @@ export function RiverView({
                   }`}
                 />
                 {selectedKrathong.voted_by_me
-                  ? "ยกเลิกโหวตนี้ (เปลี่ยนใจได้ถึง 16:00 น.)"
+                  ? "ยกเลิกโหวตนี้ (เปลี่ยนใจไปโหวตอันอื่นได้)"
                   : `โหวตให้กระทงนี้ (เหลือสิทธิ์อีก ${votesRemaining} โหวต)`}
               </button>
             )}

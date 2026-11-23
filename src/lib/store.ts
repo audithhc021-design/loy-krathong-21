@@ -271,13 +271,7 @@ export const db = {
         .eq("key", "phase_override")
         .maybeSingle();
       const val = data?.value;
-      if (
-        val === "auto" ||
-        val === "open" ||
-        val === "locked_voting" ||
-        val === "closed" ||
-        val === "revealed"
-      ) {
+      if (val === "auto" || val === "open" || val === "closed") {
         return val;
       }
       return "auto";

@@ -4,7 +4,6 @@ import {
   setSessionCookie,
   verifyLineIdToken,
 } from "@/lib/auth";
-import { DEPARTMENTS } from "@/lib/constants";
 import { db } from "@/lib/store";
 
 export async function POST(req: Request) {
@@ -13,8 +12,7 @@ export async function POST(req: Request) {
       mode?: "line" | "dev";
       idToken?: string;
       devUserId?: string;
-      full_name?: string;
-      department?: string;
+      display_name?: string;
     };
 
     const liffConfigured = Boolean(process.env.NEXT_PUBLIC_LIFF_ID?.trim());
@@ -28,29 +26,18 @@ export async function POST(req: Request) {
       }
 
       const profile = await verifyLineIdToken(body.idToken);
-      const existing = await db.getUserByLineId(profile.lineUserId);
 
-      if (!existing && (!body.full_name?.trim() || !body.department?.trim())) {
-        return NextResponse.json({
-          needsOnboarding: true,
-          lineProfile: {
-            displayName: profile.displayName,
-            avatarUrl: profile.avatarUrl,
-          },
-        });
-      }
-
+      // ดึงชื่อและรูปโปรไฟล์จาก LINE มาใช้งานทันที ไม่ต้องกรอกชื่อ/แผนกซ้ำ
       const user = await db.upsertUser({
         line_user_id: profile.lineUserId,
         display_name: profile.displayName,
-        full_name: body.full_name?.trim() || existing?.full_name || profile.displayName,
-        department:
-          body.department?.trim() || existing?.department || DEPARTMENTS[0],
+        full_name: profile.displayName,
+        department: "ผู้ร่วมกิจกรรม",
         avatar_url: profile.avatarUrl,
       });
 
       await setSessionCookie(user.id);
-      return NextResponse.json({ needsOnboarding: false, user });
+      return NextResponse.json({ user });
     }
 
     // Dev / Demo Mode (เปิดใช้เฉพาะเมื่อยังไม่ได้ตั้งค่า LINE LIFF)
@@ -70,34 +57,32 @@ export async function POST(req: Request) {
         );
       }
       await setSessionCookie(existing.id);
-      return NextResponse.json({ needsOnboarding: false, user: existing });
+      return NextResponse.json({ user: existing });
     }
 
-    const fullName = body.full_name?.trim();
-    const department = body.department?.trim();
-    if (!fullName || !department) {
+    const displayName = body.display_name?.trim();
+    if (!displayName) {
       return NextResponse.json(
-        { error: "กรุณากรอกชื่อ-นามสกุล และเลือกแผนก" },
+        { error: "กรุณาพิมพ์ชื่อเล่นหรือชื่อสำหรับแสดงบนกระทง" },
         { status: 400 }
       );
     }
 
-    const slug = fullName.toLowerCase().replace(/\s+/g, "-");
+    const slug = displayName.toLowerCase().replace(/\s+/g, "-");
     const user = await db.upsertUser({
       line_user_id: `dev-${slug}-${Date.now()}`,
-      display_name: fullName,
-      full_name: fullName,
-      department,
+      display_name: displayName,
+      full_name: displayName,
+      department: "ผู้ร่วมกิจกรรม",
       avatar_url: null,
     });
     await setSessionCookie(user.id);
-    return NextResponse.json({ needsOnboarding: false, user });
+    return NextResponse.json({ user });
   } catch (err) {
     console.error("POST /api/auth/session error:", err);
     return NextResponse.json(
       {
-        error:
-          err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ",
+        error: err instanceof Error ? err.message : "เข้าสู่ระบบไม่สำเร็จ",
       },
       { status: 500 }
     );

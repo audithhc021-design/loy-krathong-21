@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
 import {
   buildPublicKrathongs,
-  computeMissionStatus,
+  computeUserActivityStatus,
   getEventPhase,
 } from "@/lib/rules";
 import { db, getStorageMode } from "@/lib/store";
@@ -11,13 +11,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [sessionUserId, users, krathongs, votes, prizes, phaseOverride] =
+    const [sessionUserId, users, krathongs, votes, phaseOverride] =
       await Promise.all([
         getSessionUserId(),
         db.getAllUsers(),
         db.getAllKrathongs(),
         db.getAllVotes(),
-        db.getAllPrizes(),
         db.getPhaseOverride(),
       ]);
 
@@ -34,45 +33,12 @@ export async function GET() {
       votes,
       users,
       currentUserId: meUser?.id ?? null,
-      isRevealed: phase.isRevealed,
     });
 
-    const myKrathong =
-      publicKrathongs.find((k) => k.is_mine) ?? null;
+    const myKrathong = publicKrathongs.find((k) => k.is_mine) ?? null;
 
-    const missionStatus = meUser
-      ? computeMissionStatus(meUser, krathongs, votes)
-      : null;
-
-    const eligibleLuckyDrawCount = users.filter(
-      (u) => computeMissionStatus(u, krathongs, votes).is_lucky_draw_eligible
-    ).length;
-
-    const userById = new Map(users.map((u) => [u.id, u]));
-
-    const results = phase.isRevealed
-      ? {
-          top3: publicKrathongs.slice(0, 3),
-          judgePicks: publicKrathongs.filter((k) => k.is_judge_pick),
-          luckyDraw: prizes.map((p) => {
-            const winner = p.winner_user_id
-              ? userById.get(p.winner_user_id)
-              : null;
-            return {
-              id: p.id,
-              title: p.title,
-              sort_order: p.sort_order,
-              drawn_at: p.drawn_at,
-              winner: winner
-                ? {
-                    full_name: winner.full_name,
-                    department: winner.department,
-                    avatar_url: winner.avatar_url,
-                  }
-                : null,
-            };
-          }),
-        }
+    const activityStatus = meUser
+      ? computeUserActivityStatus(meUser, krathongs, votes)
       : null;
 
     return NextResponse.json({
@@ -82,25 +48,22 @@ export async function GET() {
       me: meUser
         ? {
             user: meUser,
-            missionStatus,
+            activityStatus,
             krathong: myKrathong,
           }
         : null,
       krathongs: publicKrathongs,
-      results,
       stats: {
         totalParticipants: users.length,
         totalKrathongs: publicKrathongs.length,
-        eligibleLuckyDrawCount,
+        totalVotes: votes.length,
       },
-      devUsers:
-        !liffConfigured
-          ? users.map((u) => ({
-              id: u.id,
-              full_name: u.full_name,
-              department: u.department,
-            }))
-          : [],
+      devUsers: !liffConfigured
+        ? users.map((u) => ({
+            id: u.id,
+            display_name: u.display_name || u.full_name,
+          }))
+        : [],
     });
   } catch (err) {
     console.error("GET /api/state error:", err);

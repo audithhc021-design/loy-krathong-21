@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import {
+  Leaf,
   Lightbulb,
   Loader2,
   LogIn,
@@ -9,22 +10,23 @@ import {
   Shield,
   Sparkles,
   Trophy,
-  UserCheck,
   Volume2,
   VolumeX,
   Waves,
 } from "lucide-react";
 import { AdminPortal } from "@/components/AdminPortal";
 import { AuthGateModal } from "@/components/AuthGateModal";
+import { EcoQuizView } from "@/components/EcoQuizView";
+import { KrathongBuilderView } from "@/components/KrathongBuilderView";
 import { LeaderboardAndResults } from "@/components/LeaderboardAndResults";
-import { MissionsAndBuilder } from "@/components/MissionsAndBuilder";
 import { RiverView } from "@/components/RiverView";
+import { UserAvatar } from "@/components/UserAvatar";
 import { loyKrathongAudio } from "@/lib/audio";
 import type {
   EventPhaseInfo,
-  MissionStatus,
   PublicKrathongView,
   UserRecord,
+  VoteQuotaStatus,
 } from "@/lib/types";
 
 interface AppStateResponse {
@@ -33,34 +35,18 @@ interface AppStateResponse {
   phase: EventPhaseInfo;
   me: {
     user: UserRecord;
-    missionStatus: MissionStatus;
+    activityStatus: VoteQuotaStatus;
     krathong: PublicKrathongView | null;
   } | null;
   krathongs: PublicKrathongView[];
-  results: {
-    top3: PublicKrathongView[];
-    judgePicks: PublicKrathongView[];
-    luckyDraw: Array<{
-      id: string;
-      title: string;
-      sort_order: number;
-      drawn_at: string | null;
-      winner: {
-        full_name: string;
-        department: string;
-        avatar_url: string | null;
-      } | null;
-    }>;
-  } | null;
   stats: {
     totalParticipants: number;
     totalKrathongs: number;
-    eligibleLuckyDrawCount: number;
+    totalVotes: number;
   };
   devUsers: Array<{
     id: string;
-    full_name: string;
-    department: string;
+    display_name: string;
   }>;
 }
 
@@ -68,9 +54,10 @@ export default function HomePage() {
   const [state, setState] = useState<AppStateResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "river" | "missions" | "leaderboard" | "admin"
+    "river" | "builder" | "quiz" | "leaderboard"
   >("river");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [musicOn, setMusicOn] = useState(false);
   const [theme, setTheme] = useState<"dark" | "cream">("dark");
@@ -103,7 +90,6 @@ export default function HomePage() {
       }
       const typed = data as AppStateResponse;
       setState(typed);
-      // If LIFF is configured and user is not logged in yet, auto-start LIFF onboarding
       if (typed.liffConfigured && !typed.me) {
         setShowAuthModal(true);
       }
@@ -177,15 +163,6 @@ export default function HomePage() {
     );
   }
 
-  const phaseBadge =
-    state.phase.phase === "revealed"
-      ? { text: "ประกาศผลแล้ว", color: "bg-emerald-400/20 text-emerald-200 border-emerald-400/30" }
-      : state.phase.phase === "closed"
-      ? { text: "ปิดรับโหวต (รอผล 08:00)", color: "bg-slate-700/70 text-slate-200 border-slate-600" }
-      : state.phase.phase === "locked_voting"
-      ? { text: "โค้งสุดท้าย (ล็อกโหวต)", color: "bg-orange-400/20 text-orange-200 border-orange-400/30" }
-      : { text: "เปิดร่วมกิจกรรมถึง 24 พ.ย.", color: "bg-amber-400/15 text-amber-200 border-amber-400/30" };
-
   return (
     <div
       className={`min-h-screen pb-24 transition-colors duration-300 ${
@@ -194,19 +171,23 @@ export default function HomePage() {
     >
       {/* Top App Header */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07112b]/90 backdrop-blur-md">
-        <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between gap-2">
-          <div>
+        <div className="mx-auto max-w-md px-3.5 py-2.5 flex items-center justify-between gap-2">
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <h1 className="text-sm font-bold text-white">
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+              <h1 className="text-xs sm:text-sm font-bold text-white truncate">
                 ศูนย์21 ลอยกระทงรักษ์โลก ๒๕๖๙
               </h1>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span
-                className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium ${phaseBadge.color}`}
+                className={`inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                  state.phase.isClosed
+                    ? "bg-slate-700/70 text-slate-200 border-slate-600"
+                    : "bg-emerald-400/15 text-emerald-200 border-emerald-400/30"
+                }`}
               >
-                {phaseBadge.text}
+                {state.phase.isClosed ? "ปิดกิจกรรมชั่วคราว" : "ร่วมลอยกระทงออนไลน์"}
               </span>
               <span className="text-[10px] text-slate-400">
                 {state.stats.totalKrathongs} กระทง
@@ -214,7 +195,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setTheme((t) => (t === "dark" ? "cream" : "dark"))}
@@ -223,7 +204,7 @@ export default function HomePage() {
                   ? "เปิดไฟ (โทนขาวครีมสว่าง)"
                   : "ปิดไฟ (โหมดกลางคืน)"
               }
-              className={`rounded-xl border px-2 py-1.5 text-[11px] font-medium flex items-center gap-1 transition ${
+              className={`rounded-xl border p-1.5 text-[11px] flex items-center transition ${
                 theme === "cream"
                   ? "bg-amber-400/25 border-amber-500/50 text-amber-800"
                   : "bg-slate-900 border-slate-800 text-amber-300 hover:text-amber-200"
@@ -236,7 +217,7 @@ export default function HomePage() {
               type="button"
               onClick={toggleMusic}
               title={musicOn ? "ปิดเพลงลอยกระทง" : "เปิดเพลงลอยกระทง"}
-              className={`rounded-xl border px-2 py-1.5 text-[11px] font-medium flex items-center gap-1 transition ${
+              className={`rounded-xl border p-1.5 text-[11px] flex items-center transition ${
                 musicOn
                   ? "bg-amber-400/20 border-amber-400/50 text-amber-200"
                   : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
@@ -249,14 +230,31 @@ export default function HomePage() {
               )}
             </button>
 
+            <button
+              type="button"
+              onClick={() => setShowAdminModal(true)}
+              title="ผู้ดูแลระบบ"
+              className="rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:text-amber-300 transition"
+            >
+              <Shield className="w-3.5 h-3.5" />
+            </button>
+
             {state.me ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => !state.liffConfigured && setShowAuthModal(true)}
-                  className="rounded-xl bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-[11px] text-slate-200 flex items-center gap-1.5 max-w-[120px]"
+                  className="rounded-xl bg-slate-900 border border-slate-700 pl-1.5 pr-2 py-1 text-[11px] text-slate-200 flex items-center gap-1.5 max-w-[115px]"
                 >
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                  <span className="truncate">{state.me.user.full_name}</span>
+                  <UserAvatar
+                    avatarUrl={state.me.user.avatar_url}
+                    displayName={
+                      state.me.user.display_name || state.me.user.full_name
+                    }
+                    size="xs"
+                  />
+                  <span className="truncate">
+                    {state.me.user.display_name || state.me.user.full_name}
+                  </span>
                 </button>
                 {!state.liffConfigured && (
                   <button
@@ -271,7 +269,7 @@ export default function HomePage() {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="rounded-xl bg-amber-400 px-3 py-1.5 text-xs font-bold text-slate-950 flex items-center gap-1.5 shadow"
+                className="rounded-xl bg-amber-400 px-2.5 py-1.5 text-xs font-bold text-slate-950 flex items-center gap-1 shadow"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 เข้าสู่ระบบ
@@ -294,35 +292,40 @@ export default function HomePage() {
           <RiverView
             krathongs={state.krathongs}
             phase={state.phase}
-            missionStatus={state.me?.missionStatus ?? null}
+            activityStatus={state.me?.activityStatus ?? null}
             isLoggedIn={Boolean(state.me)}
             onRequireLogin={() => setShowAuthModal(true)}
             onVoteAction={handleVoteAction}
-            onGoToBuilder={() => setActiveTab("missions")}
+            onGoToBuilder={() => setActiveTab("builder")}
           />
         )}
 
-        {activeTab === "missions" && (
-          <MissionsAndBuilder
+        {activeTab === "builder" && (
+          <KrathongBuilderView
             phase={state.phase}
             isLoggedIn={Boolean(state.me)}
-            missionStatus={state.me?.missionStatus ?? null}
             myKrathong={state.me?.krathong ?? null}
+            totalKrathongs={state.stats.totalKrathongs}
             onRequireLogin={() => setShowAuthModal(true)}
             onRefreshState={fetchState}
             onGoToRiver={() => setActiveTab("river")}
+            onGoToQuiz={() => setActiveTab("quiz")}
+          />
+        )}
+
+        {activeTab === "quiz" && (
+          <EcoQuizView
+            phase={state.phase}
+            isLoggedIn={Boolean(state.me)}
+            activityStatus={state.me?.activityStatus ?? null}
+            onRequireLogin={() => setShowAuthModal(true)}
+            onRefreshState={fetchState}
           />
         )}
 
         {activeTab === "leaderboard" && (
-          <LeaderboardAndResults
-            phase={state.phase}
-            krathongs={state.krathongs}
-            results={state.results}
-          />
+          <LeaderboardAndResults krathongs={state.krathongs} />
         )}
-
-        {activeTab === "admin" && <AdminPortal onParentRefresh={fetchState} />}
       </main>
 
       {/* Toast Notification */}
@@ -332,15 +335,15 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Sticky Bottom Mobile Navigation */}
+      {/* Sticky Bottom Mobile Navigation (4 Citizen-friendly Tabs) */}
       <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#07112b]/95 backdrop-blur-md">
         <div className="mx-auto max-w-md grid grid-cols-4 px-2 py-1.5">
           {(
             [
               { id: "river", label: "แม่น้ำ", icon: Waves },
-              { id: "missions", label: "ภารกิจ", icon: Sparkles },
-              { id: "leaderboard", label: state.phase.isRevealed ? "ผลรางวัล" : "อันดับ", icon: Trophy },
-              { id: "admin", label: "แอดมิน", icon: Shield },
+              { id: "builder", label: "ลอยกระทง", icon: Sparkles },
+              { id: "quiz", label: "ควิซรักษ์โลก", icon: Leaf },
+              { id: "leaderboard", label: "ยอดนิยม", icon: Trophy },
             ] as const
           ).map((item) => {
             const Icon = item.icon;
@@ -361,7 +364,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Auth / Onboarding Modal */}
+      {/* Auth Modal */}
       {showAuthModal && (
         <AuthGateModal
           liffConfigured={state.liffConfigured}
@@ -370,8 +373,28 @@ export default function HomePage() {
             setShowAuthModal(false);
             await fetchState();
           }}
-          onClose={state.liffConfigured ? undefined : () => setShowAuthModal(false)}
+          onClose={
+            state.liffConfigured ? undefined : () => setShowAuthModal(false)
+          }
         />
+      )}
+
+      {/* Admin Moderation Modal (opened via subtle top-right Shield icon) */}
+      {showAdminModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/85 backdrop-blur-sm p-3"
+          onClick={() => setShowAdminModal(false)}
+        >
+          <div
+            className="w-full max-w-md max-h-[88vh] overflow-y-auto rounded-3xl border border-amber-400/30 bg-[#0c1a38] p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AdminPortal
+              onParentRefresh={fetchState}
+              onClose={() => setShowAdminModal(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -3,12 +3,10 @@
 import React, { useEffect, useState } from "react";
 import liff from "@line/liff";
 import { Loader2, Sparkles, UserCheck } from "lucide-react";
-import { DEPARTMENTS } from "@/lib/constants";
 
 interface DevUserOption {
   id: string;
-  full_name: string;
-  department: string;
+  display_name: string;
 }
 
 interface AuthGateModalProps {
@@ -24,14 +22,11 @@ export function AuthGateModal({
   onAuthenticated,
   onClose,
 }: AuthGateModalProps) {
-  const [status, setStatus] = useState<
-    "init" | "ready" | "onboarding" | "submitting" | "error"
-  >(liffConfigured ? "init" : "ready");
+  const [status, setStatus] = useState<"init" | "ready" | "submitting" | "error">(
+    liffConfigured ? "init" : "ready"
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [lineIdToken, setLineIdToken] = useState<string | null>(null);
-  const [lineDisplayName, setLineDisplayName] = useState<string>("");
-  const [fullName, setFullName] = useState("");
-  const [department, setDepartment] = useState("");
+  const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
     if (!liffConfigured) return;
@@ -52,8 +47,8 @@ export function AuthGateModal({
           );
         }
         if (cancelled) return;
-        setLineIdToken(idToken);
 
+        // ดึงชื่อและรูปโปรไฟล์จาก LINE เข้าสู่ระบบทันทีโดยไม่ต้องกรอกฟอร์มเพิ่ม
         const res = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,14 +58,7 @@ export function AuthGateModal({
         if (!res.ok) {
           throw new Error(data.error || "เข้าสู่ระบบ LINE ไม่สำเร็จ");
         }
-        if (cancelled) return;
-
-        if (data.needsOnboarding) {
-          const dn = data.lineProfile?.displayName || "";
-          setLineDisplayName(dn);
-          setFullName(dn);
-          setStatus("onboarding");
-        } else {
+        if (!cancelled) {
           await onAuthenticated();
         }
       } catch (err) {
@@ -89,42 +77,25 @@ export function AuthGateModal({
     };
   }, [liffConfigured, onAuthenticated]);
 
-  async function handleOnboardingSubmit(e: React.FormEvent) {
+  async function handleDevSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!fullName.trim()) {
-      setErrorMsg("กรุณากรอกชื่อ-นามสกุล หรือชื่อเล่นที่เพื่อนในหน่วยงานรู้จัก");
-      return;
-    }
-    if (!department.trim()) {
-      setErrorMsg("กรุณาพิมพ์ชื่อสังกัด / แผนกของคุณ");
+    if (!displayName.trim()) {
+      setErrorMsg("กรุณาพิมพ์ชื่อที่ต้องการแสดง");
       return;
     }
     setErrorMsg(null);
     setStatus("submitting");
     try {
-      const payload = liffConfigured
-        ? {
-            mode: "line",
-            idToken: lineIdToken,
-            full_name: fullName.trim(),
-            department,
-          }
-        : {
-            mode: "dev",
-            full_name: fullName.trim(),
-            department,
-          };
-
       const res = await fetch("/api/auth/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ mode: "dev", display_name: displayName.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "ลงทะเบียนไม่สำเร็จ");
+      if (!res.ok) throw new Error(data.error || "เข้าสู่ระบบไม่สำเร็จ");
       await onAuthenticated();
     } catch (err) {
-      setStatus(liffConfigured ? "onboarding" : "ready");
+      setStatus("ready");
       setErrorMsg(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
     }
   }
@@ -154,7 +125,7 @@ export function AuthGateModal({
           <div className="flex items-center gap-2 text-amber-300">
             <Sparkles className="w-5 h-5" />
             <h2 className="text-lg font-bold">
-              {liffConfigured ? "ลงทะเบียนร่วมงานลอยกระทง" : "เข้าสู่ระบบร่วมกิจกรรม"}
+              {liffConfigured ? "กำลังเข้าสู่ระบบด้วย LINE" : "เข้าสู่ระบบร่วมลอยกระทง"}
             </h2>
           </div>
           {onClose && status !== "submitting" && (
@@ -170,7 +141,9 @@ export function AuthGateModal({
         {status === "init" && (
           <div className="py-10 text-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto" />
-            <p className="text-sm text-slate-300">กำลังเชื่อมต่อ LINE LIFF...</p>
+            <p className="text-sm text-slate-300">
+              กำลังดึงข้อมูลโปรไฟล์ LINE ของคุณ...
+            </p>
           </div>
         )}
 
@@ -188,22 +161,13 @@ export function AuthGateModal({
           </div>
         )}
 
-        {(status === "onboarding" || status === "ready" || status === "submitting") && (
+        {(status === "ready" || status === "submitting") && (
           <div className="space-y-4">
-            {!liffConfigured && (
-              <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 p-3 text-xs text-emerald-200">
-                <span className="font-semibold">โหมดทดสอบ (Dev Mode):</span>{" "}
-                ยังไม่ได้ตั้งค่า <code className="text-amber-300">NEXT_PUBLIC_LIFF_ID</code>{" "}
-                จึงสามารถเลือกพนักงานตัวอย่างหรือสร้างชื่อใหม่เพื่อทดสอบโหวตและจับฉลากได้ทันที
-              </div>
-            )}
-
-            {liffConfigured && lineDisplayName && (
-              <p className="text-xs text-slate-300">
-                สวัสดีคุณ <span className="text-amber-300 font-semibold">{lineDisplayName}</span>{" "}
-                กรุณาระบุชื่อจริงและแผนกสำหรับประกาศรางวัล (กรอกครั้งเดียว)
-              </p>
-            )}
+            <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 p-3 text-xs text-emerald-200">
+              <span className="font-semibold">โหมดทดสอบ (Dev Mode):</span>{" "}
+              ยังไม่ได้ตั้งค่า <code className="text-amber-300">NEXT_PUBLIC_LIFF_ID</code>{" "}
+              จึงสามารถเลือกผู้ใช้ตัวอย่างหรือพิมพ์ชื่อเล่นเพื่อทดสอบลอยกระทงและโหวตได้ทันที
+            </div>
 
             {errorMsg && (
               <div className="rounded-xl bg-rose-500/15 border border-rose-400/30 p-3 text-xs text-rose-200">
@@ -211,51 +175,19 @@ export function AuthGateModal({
               </div>
             )}
 
-            <form onSubmit={handleOnboardingSubmit} className="space-y-3">
+            <form onSubmit={handleDevSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs text-slate-300 mb-1">
-                  ชื่อ-นามสกุล (หรือชื่อที่เพื่อนร่วมงานจำได้)
+                  ชื่อเล่น / ชื่อที่ใช้แสดง
                 </label>
                 <input
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="เช่น สมชาย ใจดี (ชาย)"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="เช่น น้องบัว, สมชาย..."
                   className="w-full rounded-xl bg-slate-900/90 border border-slate-700 px-3.5 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
                   disabled={status === "submitting"}
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs text-slate-300 mb-1">
-                  สังกัด / แผนก (พิมพ์กรอกเองได้อิสระ)
-                </label>
-                <input
-                  type="text"
-                  list="department-suggestions"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="เช่น ฝ่ายไอที, HR, การเงิน, สำนักงาน..."
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none"
-                  disabled={status === "submitting"}
-                />
-                <datalist id="department-suggestions">
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept} />
-                  ))}
-                </datalist>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {DEPARTMENTS.slice(0, 5).map((dept) => (
-                    <button
-                      key={dept}
-                      type="button"
-                      onClick={() => setDepartment(dept)}
-                      className="rounded-full bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300"
-                    >
-                      {dept}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <button
@@ -268,14 +200,14 @@ export function AuthGateModal({
                 ) : (
                   <UserCheck className="w-4 h-4" />
                 )}
-                <span>ยืนยันเข้าสู่กิจกรรม</span>
+                <span>เข้าสู่สายน้ำ</span>
               </button>
             </form>
 
-            {!liffConfigured && devUsers.length > 0 && (
+            {devUsers.length > 0 && (
               <div className="pt-3 border-t border-slate-800">
                 <p className="text-xs text-slate-400 mb-2">
-                  หรือเข้าใช้งานด่วนด้วยบัญชีพนักงานตัวอย่าง:
+                  หรือเข้าใช้งานด่วนด้วยบัญชีตัวอย่าง:
                 </p>
                 <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
                   {devUsers.map((u) => (
@@ -286,10 +218,10 @@ export function AuthGateModal({
                       onClick={() => handleDevQuickLogin(u.id)}
                       className="w-full text-left rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-3 py-2 text-xs flex items-center justify-between transition"
                     >
-                      <span className="font-medium text-slate-100">{u.full_name}</span>
-                      <span className="text-[11px] text-slate-400 truncate max-w-[140px]">
-                        {u.department}
+                      <span className="font-medium text-slate-100">
+                        {u.display_name}
                       </span>
+                      <span className="text-[11px] text-amber-300">เข้าใช้งาน →</span>
                     </button>
                   ))}
                 </div>
